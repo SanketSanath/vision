@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Flask</title>
+	<style>
+	*{
+		font-size:30px;
+		color: red;
+	}
+</style>
+</head>
+<body>
+	<input id="select_image" type="file"/>
+	<button id ="predict">Predict</button>
+	<p style="front-weight:bold">prediction</p>
+    <p>Cat: <span id="ok"></span></p>
+    <p>Dog: <span id="fault"></span></p>
+
+    <img id="selected_image" src=""/>
+</body>
+
+
+
+<script type="text/javascript" src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<script>
+$(document).ready(function(){
+
+	var base64Image;
+    $('#select_image').change(function(){
+
+        var reader=new FileReader()
+        reader.onload=function(e){  
+            var dataURL=reader.result;
+            $('#selected_image').attr("src",dataURL);
+            base64Image=dataURL.replace("data:image/png;based64","");
+        }
+        reader.readAsDataURL($('#select_image')[0].files[0]);
+        $('#cat').text(""); $('#dog').text("");
+    });
+
+    $("#predict").click(function(event){
+        var data={ image:base64Image }
+
+        $.ajax({
+            type: 'POST',
+            url: '/image',
+            data,
+            success: function(response) {
+                console.log(response)
+                $('#cat').text(response.prediction.cats); $('#dog').text(response.prediction.dogs);
+            },
+            error: function(error) {    
+                alert(error.responseText);
+                console.log(error.responseText);
+            }
+        });
+    });
+})
+</script>
+</html>

@@ -1,0 +1,4 @@
+.DS_Store
+node_server/node_modules/
+node_server/package-lock.json
+python_server/static/jquery.js
