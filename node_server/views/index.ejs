@@ -4,19 +4,47 @@
 	<title>Flask</title>
 	<style>
 	*{
-		font-size:30px;
-		color: red;
+        margin: 0px;
+        padding: 0px;
 	}
+    main{
+        width: 60%;
+        float: left;
+        padding: 20px;
+        box-sizing: border-box;
+    }
+    aside{
+        width: 40%;
+        float: right;
+    }
+    img{
+        width: 200px;
+        height: auto;
+    }
 </style>
 </head>
 <body>
-	<input id="select_image" type="file"/>
-	<button id ="predict">Predict</button>
-	<p style="front-weight:bold">prediction</p>
-    <p>Cat: <span id="ok"></span></p>
-    <p>Dog: <span id="fault"></span></p>
+    <main>
+    	<input id="select_image" type="file"/>
+    	<button id ="predict">Predict</button>
+    	<p style="front-weight:bold">prediction</p>
+        <p>Okay: <span id="ok"></span></p>
+        <p>Fault: <span id="fault"></span></p>
 
-    <img id="selected_image" src=""/>
+        <img id="preview" src=""/>
+    </main>
+    <aside>
+        <div class="today">
+            <h2>Today</h2>
+            <h3 id="thik"></h3>
+            <h3 id="gadbad"></h3>
+        </div>
+        <div class="history">
+            <% for(var i = 0; i < log.length; i++){ %>
+                <p><%= log[i].date %>, <%= log[i].ok %>, <%= log[i].fault %></p>
+            <% } %>
+        </div>
+    </aside>
 </body>
 
 
@@ -31,7 +59,7 @@ $(document).ready(function(){
         var reader=new FileReader()
         reader.onload=function(e){  
             var dataURL=reader.result;
-            $('#selected_image').attr("src",dataURL);
+            $('#preview').attr("src",dataURL);
             base64Image=dataURL.replace("data:image/png;based64","");
         }
         reader.readAsDataURL($('#select_image')[0].files[0]);
@@ -47,7 +75,9 @@ $(document).ready(function(){
             data,
             success: function(response) {
                 console.log(response)
-                $('#cat').text(response.prediction.cats); $('#dog').text(response.prediction.dogs);
+                console.log(response.prediction.fault)
+                $('#ok').text(response.prediction.ok); $('#fault').text(response.prediction.fault);
+                $('#thik').text(response.statics.ok); $('#gadbad').text(response.statics.notok);
             },
             error: function(error) {    
                 alert(error.responseText);
