@@ -15,9 +15,10 @@ app.set('view-engine', 'ejs')
 app.get('/', (req, res)=>{
     con.query("select * from log order by date DESC limit 10", function(err, result, fields){
         if(err) throw err;
-        console.log(result)
-        console.log(result[0])
-        res.render('index.ejs', {log : result})
+        con.query('select * from log WHERE date = "'+DATE+'";', function(err, result2, fields){
+            console.log(result2)
+            res.render('index.ejs', {log : result, today : result2[0]})
+        })
     })
 })
 
@@ -51,16 +52,24 @@ app.post('/image', (req, res)=>{
             console.log(result)
             con.query('select * from log WHERE date = "'+DATE+'";', function(err, result2, fields){
                 console.log(result2)
-                obj.statics = {
-                    ok : result2[0].ok,
-                    notok : result2[0].notok
-                }
+                obj.statics = result2
                 res.send(obj)
             })
         })
     });
 
 	//res.send(JSON.stringify(response))
+})
+
+app.get('/log', (req, res)=>{
+    con.query("select * from log;", function(err, result, fields){
+        if(err) throw err;
+        con.query('select * from log WHERE date = "'+DATE+'";', function(err, result2, fields){
+            if(err) throw err;
+            console.log(result2)
+            res.render('log.ejs', {log : result, today : result2[0]})
+        })
+    })
 })
 
 var rule = new schedule.RecurrenceRule();
@@ -83,6 +92,14 @@ var con = mysql.createConnection({
     database: "sih",
     multipleStatements: true
 });
+
+
+con.query('insert into log values ("'+getDateTime()+'", 0, 0);', function(err, result, fields){
+    if(err) throw err
+    console.log('added new date')
+})
+
+
 
 app.listen(3000, (err)=>{
 	if(!err)

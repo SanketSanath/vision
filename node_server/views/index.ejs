@@ -7,64 +7,120 @@
         margin: 0px;
         padding: 0px;
 	}
-    main{
-        width: 60%;
-        float: left;
-        padding: 20px;
-        box-sizing: border-box;
-    }
-    aside{
-        width: 40%;
-        float: right;
-    }
-    img{
-        width: 200px;
-        height: auto;
-    }
 </style>
+<link rel="stylesheet" type="text/css" href="bootstrap/css/bootstrap.min.css">
 </head>
 <body>
-    <main>
-    	<input id="select_image" type="file"/>
-    	<button id ="predict">Predict</button>
+
+<header>
+    <nav class="navbar navbar-expand-sm bg-dark navbar-dark">
+        <a class="navbar-brand" href="#">
+            <img src="manan.png" alt="Logo" style="width:40px;">
+            <span class="ml-3">Vision</span>
+        </a>
+      <ul class="navbar-nav ml-auto">
+        <li class="nav-item active">
+          <a class="nav-link" href="/">Home</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/log">Log</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#">Link</a>
+        </li>
+      </ul>
+    </nav>
+</header>
+<div class="container-fluid mt-3">
+    <div class="row">
+    <main class="container-fluid col-md-8">
+       
+           <div class="input-group">
+              <div class="custom-file">
+                <input id="select_image" type="file" accept="image/*" class="custom-file-input" aria-describedby="select_imageAddon01"/>
+                <label class="custom-file-label" for="select_image01">Choose file</label>
+              </div>
+            </div>
+    	<button id ="predict" class="btn btn-primary">Predict</button>
     	<p style="front-weight:bold">prediction</p>
         <p>Okay: <span id="ok"></span></p>
         <p>Fault: <span id="fault"></span></p>
 
-        <img id="preview" src=""/>
+        <!-- <img id="preview" src=""/> -->
+        <canvas style="border: 2px solid black"></canvas>
     </main>
-    <aside>
+    <aside class="col-md-4">
         <div class="today">
             <h2>Today</h2>
-            <h3 id="thik"></h3>
-            <h3 id="gadbad"></h3>
+            <span id="thik"><%= today.ok %></span>
+            <span id="gadbad"><%= today.notok %></span>
         </div>
-        <div class="history">
+        <table>
+            <thead>
+                <tr>
+                    <td>#</td>
+                    <td>Date</td>
+                    <td>Non-defective</td>
+                    <td>Defective</td>
+                </tr>
+            </thead>
+            <tbody>
             <% for(var i = 0; i < log.length; i++){ %>
-                <p><%= log[i].date %>, <%= log[i].ok %>, <%= log[i].fault %></p>
+                <tr>
+                    <td><%= i+1 %>.</td>
+                    <td><%= log[i].date.getDate() %>/<%= log[i].date.getMonth() %>/<%= log[i].date.getYear() %></td>
+                    <td><%= log[i].ok %></td>
+                    <td><%= log[i].notok %></td>
+                </tr>
             <% } %>
-        </div>
+            </tbody>
+        </table>
     </aside>
+    </div>
+</div>
+<footer>
+    copyright @ Sanket Sanath
+</footer>
 </body>
 
-
-
 <script type="text/javascript" src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<script type="text/javascript" src="bootstrap/js/bootstrap.min.js"></script>
 <script>
 $(document).ready(function(){
 
 	var base64Image;
-    $('#select_image').change(function(){
+    // $('#select_image').change(function(){
 
-        var reader=new FileReader()
-        reader.onload=function(e){  
-            var dataURL=reader.result;
-            $('#preview').attr("src",dataURL);
-            base64Image=dataURL.replace("data:image/png;based64","");
+    //     var reader=new FileReader()
+    //     reader.onload=function(e){  
+    //         var dataURL=reader.result;
+    //         $('#preview').attr("src",dataURL);
+    //         base64Image=dataURL.replace("data:image/png;based64","");
+    //     }
+    //     reader.readAsDataURL($('#select_image')[0].files[0]);
+    //     $('#cat').text(""); $('#dog').text("");
+    // });
+
+    $("#select_image").change(function(e){
+        const width = 100
+        const fileName = e.target.files[0].name
+        const reader = new FileReader()
+        reader.readAsDataURL(e.target.files[0])
+        reader.onload = event => {
+            const img = new Image()
+            img.src = event.target.result
+            img.onload = ()=>{
+                const elem = document.querySelector('canvas')
+                const scaleFactor = width / img.width;
+                elem.width = width
+                elem.height = img.height * scaleFactor;
+                const ctx = elem.getContext('2d')
+                ctx.drawImage(img, 0, 0, width, img.height * scaleFactor)
+                base64Image = elem.toDataURL("image/png")
+            },
+            reader.onerror = error => console.log(error)
         }
-        reader.readAsDataURL($('#select_image')[0].files[0]);
-        $('#cat').text(""); $('#dog').text("");
-    });
+    })
 
     $("#predict").click(function(event){
         var data={ image:base64Image }
@@ -76,8 +132,8 @@ $(document).ready(function(){
             success: function(response) {
                 console.log(response)
                 console.log(response.prediction.fault)
-                $('#ok').text(response.prediction.ok); $('#fault').text(response.prediction.fault);
-                $('#thik').text(response.statics.ok); $('#gadbad').text(response.statics.notok);
+                $('#ok').text(Number((response.prediction.ok).toFixed(4))); $('#fault').text(Number((response.prediction.fault).toFixed(4)));
+                $('#thik').text(response.statics[0].ok); $('#gadbad').text(response.statics[0].notok);
             },
             error: function(error) {    
                 alert(error.responseText);

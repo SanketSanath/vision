@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Flask</title>
+</head>
+<body>
+    <div>
+        <a href="/">Home</a> / <a href="/log">Log</a>
+    </div>
+    <aside>
+        <div class="today">
+            <h2>Today</h2>
+            <span id="thik"><%= today.ok %></span>
+            <span id="gadbad"><%= today.notok %></span>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <td>#</td>
+                    <td>Date</td>
+                    <td>Non-defective</td>
+                    <td>Defective</td>
+                </tr>
+            </thead>
+            <tbody>
+            <% for(var i = 0; i < log.length; i++){ %>
+                <tr>
+                    <td><%= i+1 %></td>
+                    <td><%= log[i].date.getDate() %>/<%= log[i].date.getMonth() %>/<%= log[i].date.getYear() %></td>
+                    <td><%= log[i].ok %></td>
+                    <td><%= log[i].notok %></td>
+                </tr>
+            <% } %>
+            </tbody>
+        </table>
+    </aside>
+</body>
+
+
+
+<script type="text/javascript" src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<script>
+
+</script>
+</html>
