@@ -42,9 +42,9 @@ app.post('/image', (req, res)=>{
         var obj = JSON.parse(response.body)
         console.log(obj.prediction.ok, obj.prediction.fault)
         if(obj.prediction.ok > obj.prediction.fault){
-            ok_inc = 1; notok_inc = 0;
+            ok_inc = 1; notok_inc = 0; obj.prediction.type = "OK";
         } else {
-            ok_inc = 0; notok_inc = 1;
+            ok_inc = 0; notok_inc = 1;  obj.prediction.type = "Defective";
         }
 
         con.query('UPDATE log SET ok = ok+'+ ok_inc+', notok = notok+' + notok_inc + ' WHERE date ="'+DATE+'";' , function(err, result, fields){

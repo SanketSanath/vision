@@ -35,39 +35,43 @@
     <div class="row">
     <main class="container-fluid col-md-8">
        
-           <div class="input-group">
-              <div class="custom-file">
-                <input id="select_image" type="file" accept="image/*" class="custom-file-input" aria-describedby="select_imageAddon01"/>
-                <label class="custom-file-label" for="select_image01">Choose file</label>
-              </div>
-            </div>
-    	<button id ="predict" class="btn btn-primary">Predict</button>
-    	<p style="front-weight:bold">prediction</p>
-        <p>Okay: <span id="ok"></span></p>
-        <p>Fault: <span id="fault"></span></p>
+       <div class="input-group">
+          <div class="custom-file mr-5">
+            <input id="select_image" type="file" accept="image/*" class="custom-file-input" aria-describedby="select_imageAddon01"/>
+            <label class="custom-file-label" for="select_image01">Choose file</label>
+          </div>
+          <button id ="predict" class="btn btn-primary mr-5">Predict</button>
+        </div>
+
+        <div class="shadow-sm p-3 mb-5 mt-5 bg-white rounded">
+            <h2 style="front-weight:bold" id="type">Prediction</h2>
+            <p>Okay: <span id="ok"> 00%</span> <br> Fault: <span id="fault">00%</span></p>
+        </div>
 
         <!-- <img id="preview" src=""/> -->
         <canvas style="border: 2px solid black"></canvas>
     </main>
     <aside class="col-md-4">
-        <div class="today">
+        <div class="text-center mb-3">
             <h2>Today</h2>
-            <span id="thik"><%= today.ok %></span>
-            <span id="gadbad"><%= today.notok %></span>
+            <div class="row">
+                <div id="thik" class="offset-md-3 col-md-3" style="background-color: green; height: 60px; font-size: 40px; color: white;"><%= today.ok %></div>
+                <div id="gadbad" class="col-md-3" style="background-color: red; height: 60px; font-size: 40px; color: white;"><%= today.notok %></div>
+            </div>
         </div>
-        <table>
-            <thead>
+        <table class="table table-striped">
+            <thead class="thead-dark">
                 <tr>
-                    <td>#</td>
-                    <td>Date</td>
-                    <td>Non-defective</td>
-                    <td>Defective</td>
+                    <th scope="col">#</th>
+                    <th scope="col">Date</th>
+                    <th scope="col">OK</th>
+                    <th scope="col">Defective</th>
                 </tr>
             </thead>
             <tbody>
             <% for(var i = 0; i < log.length; i++){ %>
                 <tr>
-                    <td><%= i+1 %>.</td>
+                    <th scope="row"><%= i+1 %></th>
                     <td><%= log[i].date.getDate() %>/<%= log[i].date.getMonth() %>/<%= log[i].date.getYear() %></td>
                     <td><%= log[i].ok %></td>
                     <td><%= log[i].notok %></td>
@@ -132,7 +136,8 @@ $(document).ready(function(){
             success: function(response) {
                 console.log(response)
                 console.log(response.prediction.fault)
-                $('#ok').text(Number((response.prediction.ok).toFixed(4))); $('#fault').text(Number((response.prediction.fault).toFixed(4)));
+                $('#ok').text(Number((response.prediction.ok * 100).toFixed(2))+'%'); $('#fault').text(Number((response.prediction.fault * 100).toFixed(2))+'%');
+                $('#type').text(response.prediction.type);
                 $('#thik').text(response.statics[0].ok); $('#gadbad').text(response.statics[0].notok);
             },
             error: function(error) {    
