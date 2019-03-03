@@ -24,7 +24,8 @@ app=Flask(__name__)
 
 #def get_model():
 #global model
-model=load_model("Afterbetter_model.hdf5")
+# model=load_model("Afterbetter_model.hdf5")
+model = load_model("afterbetter_model.h5")
 model2 = load_model("3categoricalhdf5")
 print("**Model loaded***")
 

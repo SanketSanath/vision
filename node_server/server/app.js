@@ -115,7 +115,7 @@ var con = mysql.createConnection({
 
 
 
-app.listen(3000, (err)=>{
+app.listen(3000, '0.0.0.0', (err)=>{
 	if(!err)
 		console.log('server is up!')
 })
