@@ -35,21 +35,29 @@
     <div class="row">
     <main class="container-fluid col-md-8">
        
-       <div class="input-group">
-          <div class="custom-file mr-5">
+       <div class="input-group ">
+          <div class="custom-file mr-5 ">
             <input id="select_image" type="file" accept="image/*" class="custom-file-input" aria-describedby="select_imageAddon01"/>
             <label class="custom-file-label" for="select_image01">Choose file</label>
           </div>
           <button id ="predict" class="btn btn-primary mr-5">Predict</button>
         </div>
 
-        <div class="shadow-sm p-3 mb-5 mt-5 bg-white rounded">
-            <h2 style="front-weight:bold" id="type">Prediction</h2>
-            <p>Okay: <span id="ok"> 00%</span> <br> Fault: <span id="fault">00%</span></p>
+        <div class="shadow-sm p-3 mb-5 mt-5 bg-white rounded row">
+            <div class="col-md-4">
+                <h1 style="front-weight:bold" id="type">Prediction</h1>
+                <p>Okay: <span id="ok"> 0.00 </span> <br> Fault: <span id="fault">0.00</span></p>
+            </div>
+            <div class="col-md-4">
+                <canvas id="d_chart_1"></canvas>
+            </div>
+            <div class="col-md-4">
+                <canvas id="d_chart_3"></canvas>
+            </div>
         </div>
 
         <!-- <img id="preview" src=""/> -->
-        <canvas style="border: 2px solid black"></canvas>
+        <canvas id="preview" style="border: 2px solid black"></canvas>
     </main>
     <aside class="col-md-4">
         <div class="text-center mb-3">
@@ -59,6 +67,7 @@
                 <div id="gadbad" class="col-md-3" style="background-color: red; height: 60px; font-size: 40px; color: white;"><%= today.notok %></div>
             </div>
         </div>
+        <canvas id="d_chart_2" class="mb-3"></canvas>
         <table class="table table-striped">
             <thead class="thead-dark">
                 <tr>
@@ -69,10 +78,10 @@
                 </tr>
             </thead>
             <tbody>
-            <% for(var i = 0; i < log.length; i++){ %>
+            <% for(var i = 1; i < log.length; i++){ %>
                 <tr>
-                    <th scope="row"><%= i+1 %></th>
-                    <td><%= log[i].date.getDate() %>/<%= log[i].date.getMonth() %>/<%= log[i].date.getYear() %></td>
+                    <th scope="row"><%= i %></th>
+                    <td><%= log[i].date.getDate()%>/<%= log[i].date.getMonth()+1 %>/<%= log[i].date.getFullYear() %></td>
                     <td><%= log[i].ok %></td>
                     <td><%= log[i].notok %></td>
                 </tr>
@@ -89,6 +98,7 @@
 
 <script type="text/javascript" src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
 <script type="text/javascript" src="bootstrap/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="Chart.min.js"></script>
 <script>
 $(document).ready(function(){
 
@@ -106,7 +116,7 @@ $(document).ready(function(){
     // });
 
     $("#select_image").change(function(e){
-        const width = 100
+        const width = 300
         const fileName = e.target.files[0].name
         const reader = new FileReader()
         reader.readAsDataURL(e.target.files[0])
@@ -114,7 +124,8 @@ $(document).ready(function(){
             const img = new Image()
             img.src = event.target.result
             img.onload = ()=>{
-                const elem = document.querySelector('canvas')
+                // const elem = document.querySelector('canvas')
+                const elem = document.getElementById("preview")
                 const scaleFactor = width / img.width;
                 elem.width = width
                 elem.height = img.height * scaleFactor;
@@ -136,9 +147,36 @@ $(document).ready(function(){
             success: function(response) {
                 console.log(response)
                 console.log(response.prediction.fault)
-                $('#ok').text(Number((response.prediction.ok * 100).toFixed(2))+'%'); $('#fault').text(Number((response.prediction.fault * 100).toFixed(2))+'%');
-                $('#type').text(response.prediction.type);
+
+
+                if(response.prediction.type == 'Defective'){
+                    var arr = response.defect_type
+                    var ans = ''
+                    if(arr.crack > arr.dent && arr.crack > arr.surface){
+                        ans = "Crack"
+                    } else if (arr.dent > arr.crack && arr.dent > arr.surface){
+                        ans = "Dent"
+                    } else{
+                        ans = "Surface"
+                    }
+
+                    $('#type').text(response.prediction.type+ ' ('+ans+')')
+                    $('#type').css("color", "red")
+
+                    $("#d_chart_3").css("visibility", "visible")
+                    draw_chart_3(arr.crack, arr.dent, arr.surface)
+                } else {
+                    $('#type').text(response.prediction.type)
+                    $('#type').css("color", "green")
+                    $("#d_chart_3").css("visibility", "hidden")
+                }
+
+                // $('#type').text(response.prediction.type);
+                $('#ok').text(Number((response.prediction.ok).toFixed(6))); $('#fault').text(Number((response.prediction.fault).toFixed(6)));
                 $('#thik').text(response.statics[0].ok); $('#gadbad').text(response.statics[0].notok);
+
+                draw_chart_1(Number((response.prediction.ok).toFixed(6)), Number((response.prediction.fault).toFixed(6)))
+                draw_chart_2(response.statics[0].ok, response.statics[0].notok)
             },
             error: function(error) {    
                 alert(error.responseText);
@@ -146,6 +184,64 @@ $(document).ready(function(){
             }
         });
     });
+
+    function draw_chart_1(ok, fault){
+        var ctx = document.getElementById("d_chart_1").getContext('2d');
+        var myDoughnutChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                datasets: [{
+                    data: [ok, fault],
+                    backgroundColor: [
+                        'green',
+                        'red'
+                    ]
+                }],
+                labels: [
+                    'Probability that bearing is OK',
+                    'Probability that bearing is not OK'
+                ]
+            }
+        })
+    }
+
+    function draw_chart_2(ok, notok){
+        var ctx = document.getElementById("d_chart_2").getContext('2d');
+        var myDoughnutChart = new Chart(ctx, {
+            type: 'doughnut',
+
+            data: {
+                labels: ['Non-defective bearing', 'Defective bearing'],
+                datasets: [{
+                    data: [ok, notok],
+                    backgroundColor: [
+                        'green',
+                        'red'
+                    ]
+                }]
+            }
+        })
+    }
+
+    function draw_chart_3(crack, dent, surface){
+        var ctx = document.getElementById("d_chart_3").getContext('2d');
+        var myDoughnutChart = new Chart(ctx, {
+            type: 'bar',
+
+            data: {
+                labels: ['Crack', 'Dent', 'Surface'],
+                datasets: [{
+                    label : "Probability",
+                    data: [crack, dent, surface],
+                    backgroundColor: [
+                        '#609000',
+                        '#FD6B00',
+                        '#7658C3'
+                    ]
+                }]
+            }
+        })
+    }
 })
 </script>
 </html>

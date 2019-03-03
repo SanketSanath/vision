@@ -24,7 +24,8 @@ app=Flask(__name__)
 
 #def get_model():
 #global model
-model=load_model("beetermodel.hdf5")
+model=load_model("Afterbetter_model.hdf5")
+model2 = load_model("3categoricalhdf5")
 print("**Model loaded***")
 
 
@@ -35,7 +36,7 @@ def preprocess_image(image,target_size):
     image=img_to_array(image,dtype = np.float32)
     image=cv2.cvtColor(image,cv2.COLOR_BGR2GRAY)
     image=image/255.0
-    print(image)
+    # print(image)
     #image=np.expand_dims(image,axis=0)
     image=np.reshape(image,(1,224,224,1))
 
@@ -54,7 +55,7 @@ def predict():
     message=request.get_json(force=True)
     encoded=message['image'] 
     encoded=encoded.split(",")[1]
-    print(len(encoded))
+    # print(len(encoded))
     decode=base64.b64decode(encoded)
     image=Image.open(io.BytesIO(decode))
     preprocessed_image=preprocess_image(image,target_size=(224,224))
@@ -67,6 +68,33 @@ def predict():
             {
         'ok': prediction[0][0],
         'fault': prediction[0][1] }
+
+        }
+    print("go response")
+    return jsonify(response)
+
+
+@app.route('/predict_defect',methods=["POST"])
+def predict_defect():
+    print('hello')
+    message=request.get_json(force=True)
+    encoded=message['image'] 
+    encoded=encoded.split(",")[1]
+    # print(len(encoded))
+    decode=base64.b64decode(encoded)
+    image=Image.open(io.BytesIO(decode))
+    preprocessed_image=preprocess_image(image,target_size=(224,224))
+    #prediction=model.predict(preprocessed_image).tolist()
+    with graph.as_default():
+        prediction=model2.predict(preprocessed_image).tolist()
+    print(prediction)
+    response={
+        'prediction':
+            {
+        'crack': prediction[0][0],
+        'dent': prediction[0][1],
+        'surface': prediction[0][2]
+        }
 
         }
     print("go response")

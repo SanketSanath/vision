@@ -2,43 +2,66 @@
 <html>
 <head>
 	<title>Flask</title>
+    <style type="text/css">
+        
+    </style>
+    <link rel="stylesheet" type="text/css" href="bootstrap/css/bootstrap.min.css">
 </head>
 <body>
-    <div>
-        <a href="/">Home</a> / <a href="/log">Log</a>
-    </div>
-    <aside>
-        <div class="today">
-            <h2>Today</h2>
-            <span id="thik"><%= today.ok %></span>
-            <span id="gadbad"><%= today.notok %></span>
-        </div>
-        <table>
-            <thead>
-                <tr>
-                    <td>#</td>
-                    <td>Date</td>
-                    <td>Non-defective</td>
-                    <td>Defective</td>
-                </tr>
-            </thead>
-            <tbody>
-            <% for(var i = 0; i < log.length; i++){ %>
-                <tr>
-                    <td><%= i+1 %></td>
-                    <td><%= log[i].date.getDate() %>/<%= log[i].date.getMonth() %>/<%= log[i].date.getYear() %></td>
-                    <td><%= log[i].ok %></td>
-                    <td><%= log[i].notok %></td>
-                </tr>
-            <% } %>
-            </tbody>
-        </table>
-    </aside>
+<header>
+    <nav class="navbar navbar-expand-sm bg-dark navbar-dark">
+        <a class="navbar-brand" href="#">
+            <img src="manan.png" alt="Logo" style="width:40px;">
+            <span class="ml-3">Vision</span>
+        </a>
+      <ul class="navbar-nav ml-auto">
+        <li class="nav-item">
+          <a class="nav-link" href="/">Home</a>
+        </li>
+        <li class="nav-item active">
+          <a class="nav-link" href="/log">Log</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#">Link</a>
+        </li>
+      </ul>
+    </nav>
+</header>
+
+<div class="row container-fluid mt-5">
+<main class="col-md-8">
+    
+</main>
+
+<aside class="col-md-4">
+    <table class="table table-striped">
+        <thead class="thead-dark">
+            <tr>
+                <th scope="col">#</th>
+                <th scope="col">Date</th>
+                <th scope="col">OK</th>
+                <th scope="col">Defective</th>
+            </tr>
+        </thead>
+        <tbody>
+        <% for(var i = 0; i < log.length; i++){ %>
+            <tr>
+                <th scope="row"><%= i+1 %></th>
+                <td><%= log[i].date.getDate() %>/<%= log[i].date.getMonth() %>/<%= log[i].date.getYear() %></td>
+                <td><%= log[i].ok %></td>
+                <td><%= log[i].notok %></td>
+            </tr>
+        <% } %>
+        </tbody>
+    </table>
+</aside>
+</div>
 </body>
 
 
 
 <script type="text/javascript" src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<script type="text/javascript" src="bootstrap/js/bootstrap.min.js"></script>
 <script>
 
 </script>

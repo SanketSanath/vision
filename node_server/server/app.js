@@ -8,15 +8,15 @@ const schedule = require('node-schedule')
 const app = express()
 
 app.use(express.static(__dirname + '/../public'))
-app.use(bodyParser.urlencoded({ extended : false }))
+app.use(bodyParser.urlencoded({limit: '50mb', extended : false }))
 
 app.set('view-engine', 'ejs')
 
 app.get('/', (req, res)=>{
-    con.query("select * from log order by date DESC limit 10", function(err, result, fields){
+    con.query("select * from log order by date DESC limit 6", function(err, result, fields){
         if(err) throw err;
         con.query('select * from log WHERE date = "'+DATE+'";', function(err, result2, fields){
-            console.log(result2)
+            //console.log(result2)
             res.render('index.ejs', {log : result, today : result2[0]})
         })
     })
@@ -38,35 +38,54 @@ app.post('/image', (req, res)=>{
         }
     }
     request(clientServerOptions, function (error, response) {
-        console.log(response.body);
+        // console.log(response.body);
         var obj = JSON.parse(response.body)
-        console.log(obj.prediction.ok, obj.prediction.fault)
         if(obj.prediction.ok > obj.prediction.fault){
             ok_inc = 1; notok_inc = 0; obj.prediction.type = "OK";
+            con.query('UPDATE log SET ok = ok+'+ ok_inc+', notok = notok+' + notok_inc + ' WHERE date ="'+DATE+'";' , function(err, result, fields){
+                if(err) throw err;
+                con.query('select * from log WHERE date = "'+DATE+'";', function(err, result2, fields){
+                    obj.statics = result2
+                    res.send(obj)
+                })
+            })
         } else {
             ok_inc = 0; notok_inc = 1;  obj.prediction.type = "Defective";
+            // when bearing is defective
+            clientServerOptions = {
+                uri: 'http://0.0.0.0:5000/predict_defect',
+                body: JSON.stringify(message),
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            }
+            request(clientServerOptions, function (error, response2) {
+                console.log("this is fun ", response2.body)
+                // var arr = JSON.parse(response2.body).prediction
+                obj.defect_type = JSON.parse(response2.body).prediction
+
+                con.query('UPDATE log SET ok = ok+'+ ok_inc+', notok = notok+' + notok_inc + ' WHERE date ="'+DATE+'";' , function(err, result, fields){
+                    if(err) throw err;
+                    con.query('select * from log WHERE date = "'+DATE+'";', function(err, result2, fields){
+                        obj.statics = result2
+                        res.send(obj)
+                    })
+                })
+            })
         }
 
-        con.query('UPDATE log SET ok = ok+'+ ok_inc+', notok = notok+' + notok_inc + ' WHERE date ="'+DATE+'";' , function(err, result, fields){
-            if(err) throw err;
-            console.log(result)
-            con.query('select * from log WHERE date = "'+DATE+'";', function(err, result2, fields){
-                console.log(result2)
-                obj.statics = result2
-                res.send(obj)
-            })
-        })
     });
 
-	//res.send(JSON.stringify(response))
 })
+
 
 app.get('/log', (req, res)=>{
     con.query("select * from log;", function(err, result, fields){
         if(err) throw err;
         con.query('select * from log WHERE date = "'+DATE+'";', function(err, result2, fields){
             if(err) throw err;
-            console.log(result2)
+            ////console.log(result2)
             res.render('log.ejs', {log : result, today : result2[0]})
         })
     })
@@ -93,11 +112,6 @@ var con = mysql.createConnection({
     multipleStatements: true
 });
 
-
-con.query('insert into log values ("'+getDateTime()+'", 0, 0);', function(err, result, fields){
-    if(err) throw err
-    console.log('added new date')
-})
 
 
 
